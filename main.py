@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 class PlotResults:
     """
     Class to plot the results. 
     """
+
     def plot_results(self, data1, data2, label1, label2, filename):
         """
         This method receives two lists of data point (data1 and data2) and plots
@@ -19,12 +21,12 @@ class PlotResults:
         """
         _, ax = plt.subplots()
         ax.scatter(data1, data2, s=100, c="g", alpha=0.5, cmap=plt.cm.coolwarm, zorder=10)
-    
+
         lims = [
-        np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
-        np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+            np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+            np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
         ]
-    
+
         ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
         ax.set_aspect('equal')
         ax.set_xlim(lims)
@@ -33,6 +35,7 @@ class PlotResults:
         plt.ylabel(label2)
         plt.grid()
         plt.savefig(filename)
+
 
 class Grid:
     """
@@ -44,6 +47,7 @@ class Grid:
     initially assigned on the grid. Backtracking search and AC3 reduce the the domain of the variables 
     as they proceed with search and inference.
     """
+
     def __init__(self):
         self._cells = []
         self._complete_domain = "123456789"
@@ -106,7 +110,7 @@ class Grid:
             if i % self._width == 0:
                 self._cells.append(row)
                 row = []
-            
+
     def print(self):
         """
         Prints the grid on the screen. Example:
@@ -167,13 +171,13 @@ class Grid:
                 if len(self._cells[i][j]) > 1 or not self.is_value_consistent(self._cells[i][j], i, j):
                     return False
         return True
-    
+
     def is_value_consistent(self, value, row, column):
         for i in range(self.get_width()):
             if i == column: continue
             if self.get_cells()[row][i] == value:
                 return False
-        
+
         for i in range(self.get_width()):
             if i == row: continue
             if self.get_cells()[i][column] == value:
@@ -190,19 +194,23 @@ class Grid:
                     return False
         return True
 
+
 class VarSelector:
     """
     Interface for selecting variables in a partial assignment. 
 
     Extend this class when implementing a new heuristic for variable selection.
     """
+
     def select_variable(self, grid):
         pass
+
 
 class FirstAvailable(VarSelector):
     """
     Naïve method for selecting variables; simply returns the first variable encountered whose domain is larger than one.
     """
+
     def select_variable(self, grid):
         # Implement here the first available heuristic
         grid_size = len(grid.get_width())
@@ -214,16 +222,18 @@ class FirstAvailable(VarSelector):
 
         return -1
 
+
 class MRV(VarSelector):
     """
     Implements the MRV heuristic, which returns one of the variables with smallest domain. 
     """
+
     def select_variable(self, grid):
         # Implement here the mrv heuristic
         grid_size = len(grid.get_width())
 
         smallest_domain = 9
-        index = [-1,-1]
+        index = [-1, -1]
 
         for i in range(grid_size):
             for j in range(grid_size):
@@ -232,17 +242,17 @@ class MRV(VarSelector):
                 if domain_size != 1:
                     if domain_size < smallest_domain:
                         smallest_domain = domain_size
-                        index = [i,j]
+                        index = [i, j]
 
         return index
-
 
 
 class AC3:
     """
     This class implements the methods needed to run AC3 on Sudoku. 
     """
-    def remove_domain_row(grid, row, column):
+
+    def remove_domain_row(self, grid, row, column):
         """
         Given a matrix (grid) and a cell on the grid (row and column) whose domain is of size 1 (i.e., the variable has its
         value assigned), this method removes the value of (row, column) from all variables in the same row. 
@@ -260,7 +270,7 @@ class AC3:
                     variables_assigned.append((row, j))
 
                 grid.get_cells()[row][j] = new_domain
-        
+
         return variables_assigned, False
 
     def remove_domain_column(self, grid, row, column):
@@ -273,7 +283,7 @@ class AC3:
         for j in range(grid.get_width()):
             if j != row:
                 new_domain = grid.get_cells()[j][column].replace(grid.get_cells()[row][column], '')
-                
+
                 if len(new_domain) == 0:
                     return None, True
 
@@ -320,7 +330,7 @@ class AC3:
         # Implement here the code for making the CSP arc consistent as a pre-processing step; this method should be called once before search
         pass
 
-    def consistency(self, grid, Q):
+    def consistency(self, grid, Q: set):
         """
         This is a domain-specific implementation of AC3 for Sudoku. 
 
@@ -340,7 +350,19 @@ class AC3:
         partial assignment; the method returns False otherwise. 
         """
         # Implement here the domain-dependent version of AC3.
-        pass
+        while len(Q) != 0:
+            var = Q.pop()
+            row, column = var
+
+            a = self.remove_domain_row(grid, row, column)
+            b = self.remove_domain_column(grid, row, column)
+            c = self.remove_domain_unit(grid, row, column)
+
+            if a and b and c:
+                return -1
+
+            #TODO need to add last line
+
 
 class Backtracking:
     """
@@ -353,9 +375,9 @@ class Backtracking:
         """
         if grid.is_solved():
             return grid
-        var_selector = MRV()
+        var_selector = MRV()  # TODO
         var = list(var_selector.select_variable(grid))
-        i,j = var
+        i, j = var
 
         for d in grid.get_cells()[i][j]:
 
@@ -367,8 +389,6 @@ class Backtracking:
                 if rb:
                     return rb
         return False
-
-
 
 
 file = open('tutorial_problem.txt', 'r')
@@ -457,5 +477,3 @@ for p in problems:
     print()
 
     print('Is the current grid a solution? ', g.is_solved())
-
-
