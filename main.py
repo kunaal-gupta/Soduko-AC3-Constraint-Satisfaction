@@ -206,10 +206,13 @@ class FirstAvailable(VarSelector):
     def select_variable(self, grid):
         # Implement here the first available heuristic
         grid_size = len(grid.get_width())
+
         for i in range(grid_size):
             for j in range(grid_size):
                 if len(grid.get_cells()[i][j]) > 1:
                     return (i, j)
+
+        return -1
 
 class MRV(VarSelector):
     """
@@ -217,7 +220,25 @@ class MRV(VarSelector):
     """
     def select_variable(self, grid):
         # Implement here the mrv heuristic
-        pass
+        grid_size = len(grid.get_width())
+
+        smallest_domain = 9
+        index = [-1,-1]
+        updated = False
+
+        for i in range(grid_size):
+            for j in range(grid_size):
+                domain_size = len(grid.get_cells()[i][j])
+
+                if domain_size != 1:
+                    if domain_size < smallest_domain:
+                        smallest_domain = domain_size
+                        index = [i,j]
+                        updated = True
+
+        if updated: return index
+        else:
+            return -1
 
 
 class AC3:
