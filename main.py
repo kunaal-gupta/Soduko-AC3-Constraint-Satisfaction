@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 
 
 class PlotResults:
@@ -332,8 +333,8 @@ class AC3:
         # called once before search
 
         for i in range(grid.get_width()):
-            for j in range(len(grid.get_cells()[i])):
-                if len(grid.get_cells()[i][j]) == 1:
+            for j, cell in enumerate(grid.get_cells()[i]):
+                if len(cell) == 1:
                     self.remove_domain_row(grid, i, j)
                     self.remove_domain_column(grid, i, j)
                     self.remove_domain_unit(grid, i, j)
@@ -359,6 +360,7 @@ class AC3:
         """
         # Implement here the domain-dependent version of AC3.
         while len(Q) != 0:
+            # print(Q)
             row, column = Q.pop()
 
             a, aBool = self.remove_domain_row(grid, row, column)
@@ -368,12 +370,11 @@ class AC3:
             if not (aBool and bBool and cBool):
                 return -1
 
-            if len(grid.get_cells()[a[0][0], a[0][1]]) == 1:
-                Q.add(a[0])
-            if len(grid.get_cells()[b[0][0], b[0][1]]) == 1:
-                Q.add(b[0])
-            if len(grid.get_cells()[c[0][0], c[0][1]]) == 1:
-                Q.add(c[0])
+            for coords in (a, b, c):
+                for i in range(len(coords)):
+                    cell_value = grid.get_cells()[coords[i][0], coords[i][1]]
+                    if len(cell_value) == 1:
+                        Q.add(coords[0])
 
 
 class Backtracking:
@@ -386,12 +387,12 @@ class Backtracking:
         Implements backtracking search with inference. 
         """
         Queue = set()
-        AC3_Class = AC3()
-        AC3_Class.pre_process_consistency(grid)
-        AC3_Class.consistency(grid, Queue)
+        AC_3 = AC3()
+        # AC3_Class.pre_process_consistency(grid)
 
         if grid.is_solved():
             return grid
+
         var, found = var_selector.select_variable(grid)
 
         if found:
@@ -403,6 +404,9 @@ class Backtracking:
                     copy_grid: Grid = grid.copy()
                     copy_grid.get_cells()[i][j] = d
 
+                    Queue.add((i, j))
+                    AC_3.consistency(copy_grid, Queue)
+
                     rb = Backtracking.search(self, copy_grid, var_selector)
                     if rb:
                         return rb
@@ -410,24 +414,33 @@ class Backtracking:
             return False
 
 
+# file = open('tutorial_problem.txt', 'r')
+file = open('top95.txt', 'r')
 
-file = open('tutorial_problem.txt', 'r')
-# file = open('top95.txt', 'r')
+startTime = time.time()
 
 problems = file.readlines()
-for p in problems:
+for i, p in enumerate(problems):
     # Read problem from string
     grid = Grid()
     grid.read_file(p)
-    grid.print()
+    grid.print_domains()
+    print()
+
+    AC3_Class = AC3()
+    AC3_Class.pre_process_consistency(grid)
+    grid.print_domains()
+    print()
 
     backtrack = Backtracking()
-    varSelector = MRV()
-    output = backtrack.search(grid, varSelector)
-    output.print()
-    print(output.is_solved())
+    output = backtrack.search(grid, MRV())
+    output.print_domains()
+
+    print(i, output.is_solved())
 
 
+endTime = time.time()
+print('Time Taken: ', endTime - startTime)
 
 # for p in problems:
 #     # Read problem from string

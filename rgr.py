@@ -1,9 +1,10 @@
 a = 1
 
-def func(a):
+def func():
+    global a
     a = a+1
     return a
 
-func(a)
+
+print(func())
 print(a)
-print(func(a))
