@@ -223,7 +223,7 @@ class FirstAvailable(VarSelector):
 
 class MRV(VarSelector):
     """
-    Implements the MRV heuristic, which returns one of the variables with smallest domain. 
+    Implements the MRV heuristic, which returns one of the variables with the smallest domain.
     """
 
     def select_variable(self, grid):
@@ -232,7 +232,8 @@ class MRV(VarSelector):
         grid_size = grid.get_width()
 
         smallest_domain = 9
-        index = [-1, -1]
+        index = []
+        found = False
 
         for i in range(grid_size):
             for j in range(grid_size):
@@ -242,8 +243,9 @@ class MRV(VarSelector):
                     if domain_size < smallest_domain:
                         smallest_domain = domain_size
                         index = [i, j]
+                        found = True
 
-        return index
+        return index, found
 
 
 class AC3:
@@ -383,24 +385,30 @@ class Backtracking:
         """
         Implements backtracking search with inference. 
         """
+        Queue = set()
         AC3_Class = AC3()
         AC3_Class.pre_process_consistency(grid)
+        AC3_Class.consistency(grid, Queue)
 
         if grid.is_solved():
             return grid
-        i, j = var_selector.select_variable(grid)
+        var, found = var_selector.select_variable(grid)
 
-        for d in grid.get_cells()[i][j]:
+        if found:
 
-            if grid.is_value_consistent(d, i, j):
-                copy_grid: Grid = grid.copy()
-                copy_grid.get_cells()[i][j] = d
+            i, j = var
+            for d in grid.get_cells()[i][j]:
 
-                rb = Backtracking.search(self, copy_grid, var_selector)
-                if rb:
-                    return rb
+                if grid.is_value_consistent(d, i, j):
+                    copy_grid: Grid = grid.copy()
+                    copy_grid.get_cells()[i][j] = d
 
-        return False
+                    rb = Backtracking.search(self, copy_grid, var_selector)
+                    if rb:
+                        return rb
+
+            return False
+
 
 
 file = open('tutorial_problem.txt', 'r')
@@ -411,17 +419,15 @@ for p in problems:
     # Read problem from string
     grid = Grid()
     grid.read_file(p)
-
-    grid.print_domains()
-    # print(type(grid), grid.get_width())
+    grid.print()
 
     backtrack = Backtracking()
-    varSelector  = MRV()
-    backtrack.search(grid, varSelector)
+    varSelector = MRV()
+    output = backtrack.search(grid, varSelector)
+    output.print()
+    print(output.is_solved())
 
-    print()
-    grid.print_domains()
-    grid.print()
+
 
 # for p in problems:
 #     # Read problem from string
