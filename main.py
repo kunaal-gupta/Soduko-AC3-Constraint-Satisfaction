@@ -218,9 +218,7 @@ class FirstAvailable(VarSelector):
         for i in range(grid_size):
             for j in range(grid_size):
                 if len(grid.get_cells()[i][j]) > 1:
-                    return (i, j)
-
-        return -1
+                    return [i, j]
 
 
 class MRV(VarSelector):
@@ -229,8 +227,9 @@ class MRV(VarSelector):
     """
 
     def select_variable(self, grid):
+
         # Implement here the mrv heuristic
-        grid_size = len(grid.get_width())
+        grid_size = grid.get_width()
 
         smallest_domain = 9
         index = [-1, -1]
@@ -364,13 +363,15 @@ class AC3:
             b, bBool = self.remove_domain_column(grid, row, column)
             c, cBool = self.remove_domain_unit(grid, row, column)
 
-            if not(aBool and bBool and cBool):
+            if not (aBool and bBool and cBool):
                 return -1
 
-            if len(grid.get_cells()[a[0][0], a[0][1]]) == 1: Q.add(a[0])
-            if len(grid.get_cells()[b[0][0], b[0][1]]) == 1: Q.add(b[0])
-            if len(grid.get_cells()[c[0][0], c[0][1]]) == 1: Q.add(c[0])
-
+            if len(grid.get_cells()[a[0][0], a[0][1]]) == 1:
+                Q.add(a[0])
+            if len(grid.get_cells()[b[0][0], b[0][1]]) == 1:
+                Q.add(b[0])
+            if len(grid.get_cells()[c[0][0], c[0][1]]) == 1:
+                Q.add(c[0])
 
 
 class Backtracking:
@@ -378,42 +379,49 @@ class Backtracking:
     Class that implements backtracking search for solving CSPs. 
     """
 
-    def search(self, grid, var_selector):
+    def search(self, grid: Grid, var_selector):
         """
         Implements backtracking search with inference. 
         """
-        AC = AC3()  # TODO
-        AC.pre_process_consistency(grid)
+        AC3_Class = AC3()
+        AC3_Class.pre_process_consistency(grid)
 
         if grid.is_solved():
             return grid
-        var_selector = MRV()  # TODO
-        var = list(var_selector.select_variable(grid))
-        i, j = var
+        i, j = var_selector.select_variable(grid)
 
         for d in grid.get_cells()[i][j]:
 
             if grid.is_value_consistent(d, i, j):
-                copy_grid = grid.copy()
-                copy_grid[i][j] = d
+                copy_grid: Grid = grid.copy()
+                copy_grid.get_cells()[i][j] = d
 
-                rb = Backtracking.search(copy_grid)
+                rb = Backtracking.search(self, copy_grid, var_selector)
                 if rb:
                     return rb
+
         return False
 
 
 file = open('tutorial_problem.txt', 'r')
 # file = open('top95.txt', 'r')
+
 problems = file.readlines()
 for p in problems:
     # Read problem from string
-    g = Grid()
-    g.read_file(p)
-    print(g.get_width())
+    grid = Grid()
+    grid.read_file(p)
 
-    AC = AC3()
-    AC.pre_process_consistency(g)
+    grid.print_domains()
+    # print(type(grid), grid.get_width())
+
+    backtrack = Backtracking()
+    varSelector  = MRV()
+    backtrack.search(grid, varSelector)
+
+    print()
+    grid.print_domains()
+    grid.print()
 
 # for p in problems:
 #     # Read problem from string
@@ -430,19 +438,19 @@ for p in problems:
 #     print()
 #
 #     # Iterate over domain values
-#     for i in range(g.get_width()):
-#         for j in range(g.get_width()):
-#
-#             print('Domain of ', i, j, ': ', g.get_cells()[i][j])
-#
-#             for d in g.get_cells()[i][j]:
-#                 print(d, end=' ')
-#             print()
+#     # for i in range(g.get_width()):
+#     #     for j in range(g.get_width()):
+#     #
+#     #         print('Domain of ', i, j, ': ', g.get_cells()[i][j])
+#     #
+#     #         for d in g.get_cells()[i][j]:
+#     #             print(d, end=' ')
+#     #         print()
 #
 #     # # Make a copy of a grid
-#     copy_g = g.copy()
 #
 #     print('Copy (copy_g): ')
+#     copy_g = g.copy()
 #     copy_g.print()
 #     print()
 #
