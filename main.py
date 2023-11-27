@@ -330,14 +330,12 @@ class AC3:
         # Implement here the code for making the CSP arc consistent as a pre-processing step; this method should be
         # called once before search
 
-
         for i in range(grid.get_width()):
             for j in range(len(grid.get_cells()[i])):
                 if len(grid.get_cells()[i][j]) == 1:
                     self.remove_domain_row(grid, i, j)
                     self.remove_domain_column(grid, i, j)
                     self.remove_domain_unit(grid, i, j)
-
 
     def consistency(self, grid, Q: set):
         """
@@ -360,17 +358,19 @@ class AC3:
         """
         # Implement here the domain-dependent version of AC3.
         while len(Q) != 0:
-            var = Q.pop()
-            row, column = var
+            row, column = Q.pop()
 
-            a = self.remove_domain_row(grid, row, column)
-            b = self.remove_domain_column(grid, row, column)
-            c = self.remove_domain_unit(grid, row, column)
+            a, aBool = self.remove_domain_row(grid, row, column)
+            b, bBool = self.remove_domain_column(grid, row, column)
+            c, cBool = self.remove_domain_unit(grid, row, column)
 
-            if a and b and c:
+            if not(aBool and bBool and cBool):
                 return -1
 
-            #TODO need to add last line
+            if len(grid.get_cells()[a[0][0], a[0][1]]) == 1: Q.add(a[0])
+            if len(grid.get_cells()[b[0][0], b[0][1]]) == 1: Q.add(b[0])
+            if len(grid.get_cells()[c[0][0], c[0][1]]) == 1: Q.add(c[0])
+
 
 
 class Backtracking:
@@ -382,7 +382,7 @@ class Backtracking:
         """
         Implements backtracking search with inference. 
         """
-        AC = AC3()    #TODO
+        AC = AC3()  # TODO
         AC.pre_process_consistency(grid)
 
         if grid.is_solved():
