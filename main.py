@@ -1,3 +1,5 @@
+import heapq
+
 import matplotlib.pyplot as plt
 import numpy as np
 import time
@@ -214,12 +216,14 @@ class FirstAvailable(VarSelector):
 
     def select_variable(self, grid):
         # Implement here the first available heuristic
-        grid_size = len(grid.get_width())
+        grid_size = grid.get_width()
+        found = False
 
         for i in range(grid_size):
             for j in range(grid_size):
                 if len(grid.get_cells()[i][j]) > 1:
-                    return [i, j]
+                    found = True
+                    return [i, j], found
 
 
 class MRV(VarSelector):
@@ -339,7 +343,7 @@ class AC3:
                     self.remove_domain_column(grid, i, j)
                     self.remove_domain_unit(grid, i, j)
 
-    def consistency(self, grid, Q: set):
+    def consistency(self, grid, Q: list):
         """
         This is a domain-specific implementation of AC3 for Sudoku. 
 
@@ -360,8 +364,8 @@ class AC3:
         """
         # Implement here the domain-dependent version of AC3.
         while len(Q) != 0:
-            # print(Q)
-            row, column = Q.pop()
+            heapq.heapify(Q)
+            row, column = heapq.heappop(Q)
 
             a, aBool = self.remove_domain_row(grid, row, column)
             b, bBool = self.remove_domain_column(grid, row, column)
@@ -374,7 +378,7 @@ class AC3:
                 for i in range(len(coords)):
                     cell_value = grid.get_cells()[coords[i][0], coords[i][1]]
                     if len(cell_value) == 1:
-                        Q.add(coords[0])
+                        heapq.heappush(Q, coords[i])
 
 
 class Backtracking:
@@ -386,14 +390,15 @@ class Backtracking:
         """
         Implements backtracking search with inference. 
         """
-        Queue = set()
+        Queue = list()
         AC_3 = AC3()
-        # AC3_Class.pre_process_consistency(grid)
+        AC3_Class.pre_process_consistency(grid)
 
         if grid.is_solved():
             return grid
 
         var, found = var_selector.select_variable(grid)
+
 
         if found:
 
@@ -404,9 +409,10 @@ class Backtracking:
                     copy_grid: Grid = grid.copy()
                     copy_grid.get_cells()[i][j] = d
 
-                    Queue.add((i, j))
+                    heapq.heappush(Queue,(i, j))
                     AC_3.consistency(copy_grid, Queue)
 
+                    # copy_grid.print_domains()
                     rb = Backtracking.search(self, copy_grid, var_selector)
                     if rb:
                         return rb
@@ -434,7 +440,7 @@ for i, p in enumerate(problems):
 
     backtrack = Backtracking()
     output = backtrack.search(grid, MRV())
-    output.print_domains()
+    output.print()
 
     print(i, output.is_solved())
 
