@@ -218,12 +218,16 @@ class FirstAvailable(VarSelector):
         # Implement here the first available heuristic
         grid_size = grid.get_width()
         found = False
+        index = ()
 
         for i in range(grid_size):
             for j in range(grid_size):
                 if len(grid.get_cells()[i][j]) > 1:
                     found = True
-                    return [i, j], found
+                    index = (i,j)
+                    return index, found
+
+        return index, found
 
 
 class MRV(VarSelector):
@@ -237,7 +241,7 @@ class MRV(VarSelector):
         grid_size = grid.get_width()
 
         smallest_domain = 9
-        index = []
+        index = ()
         found = False
 
         for i in range(grid_size):
@@ -247,7 +251,7 @@ class MRV(VarSelector):
                 if domain_size != 1:
                     if domain_size < smallest_domain:
                         smallest_domain = domain_size
-                        index = [i, j]
+                        index = (i, j)
                         found = True
 
         return index, found
@@ -364,21 +368,26 @@ class AC3:
         """
         # Implement here the domain-dependent version of AC3.
         while len(Q) != 0:
-            heapq.heapify(Q)
-            row, column = heapq.heappop(Q)
+            row, column = Q.pop()
 
             a, aBool = self.remove_domain_row(grid, row, column)
             b, bBool = self.remove_domain_column(grid, row, column)
             c, cBool = self.remove_domain_unit(grid, row, column)
 
-            if not (aBool and bBool and cBool):
-                return -1
+            if aBool or bBool or cBool:
+                return True
+            # print(a, b, c)
+            # if not (aBool and bBool and cBool):
+            #     return False
 
             for coords in (a, b, c):
                 for i in range(len(coords)):
-                    cell_value = grid.get_cells()[coords[i][0], coords[i][1]]
+                    row, column = coords[i][0], coords[i][1]
+                    cell_value = grid.get_cells()[row][column]
+
                     if len(cell_value) == 1:
-                        heapq.heappush(Q, coords[i])
+                        Q.append(coords[i])
+        return False
 
 
 class Backtracking:
@@ -390,34 +399,26 @@ class Backtracking:
         """
         Implements backtracking search with inference. 
         """
-        Queue = list()
         AC_3 = AC3()
-        AC3_Class.pre_process_consistency(grid)
 
         if grid.is_solved():
-            return grid
+            return grid, True
 
         var, found = var_selector.select_variable(grid)
 
+        i, j = var
+        for d in grid.get_cells()[i][j]:
 
-        if found:
+            if grid.is_value_consistent(d, i, j):
+                copy_grid: Grid = grid.copy()
+                copy_grid.get_cells()[i][j] = d
+                Q = [(i, j)]
 
-            i, j = var
-            for d in grid.get_cells()[i][j]:
-
-                if grid.is_value_consistent(d, i, j):
-                    copy_grid: Grid = grid.copy()
-                    copy_grid.get_cells()[i][j] = d
-
-                    heapq.heappush(Queue,(i, j))
-                    AC_3.consistency(copy_grid, Queue)
-
-                    # copy_grid.print_domains()
-                    rb = Backtracking.search(self, copy_grid, var_selector)
-                    if rb:
-                        return rb
-
-            return False
+                if not (AC_3.consistency(copy_grid, Q)):
+                    rb, solved = self.search(copy_grid, var_selector)
+                    if solved:
+                        return rb, True
+        return None, False
 
 
 # file = open('tutorial_problem.txt', 'r')
@@ -430,20 +431,19 @@ for i, p in enumerate(problems):
     # Read problem from string
     grid = Grid()
     grid.read_file(p)
-    grid.print_domains()
-    print()
+    # grid.print_domains()
 
     AC3_Class = AC3()
     AC3_Class.pre_process_consistency(grid)
-    grid.print_domains()
-    print()
+    # grid.print_domains()
 
     backtrack = Backtracking()
-    output = backtrack.search(grid, MRV())
-    output.print()
-
-    print(i, output.is_solved())
-
+    output = backtrack.search(grid, FirstAvailable())
+    # print(output)
+    # output.print()
+    if output[1]:
+        output[0].print()
+        print(i, output[0].is_solved())
 
 endTime = time.time()
 print('Time Taken: ', endTime - startTime)
