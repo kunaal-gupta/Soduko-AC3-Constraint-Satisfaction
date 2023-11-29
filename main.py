@@ -1,5 +1,3 @@
-import heapq
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -444,6 +442,7 @@ def main(file, varSelectorfun):
 
     return runtimeArr
 
+print('Computing Sudoku. Please wait....')
 
 with open('top95.txt', 'r') as file:
     running_time_mrv = main(file, MRV())
@@ -451,9 +450,9 @@ with open('top95.txt', 'r') as file:
 with open('top95.txt', 'r') as file:
     running_time_first_available = main(file, FirstAvailable())
 
-print('MRV', running_time_mrv)
-print()
-print('FA', running_time_first_available)
+print('Process is completed. A runtime graph MRV vs FA is plotted')
+
+
 plotter = PlotResults()
 plotter.plot_results(running_time_mrv, running_time_first_available,
                      "Running Time Backtracking (MRV)",
