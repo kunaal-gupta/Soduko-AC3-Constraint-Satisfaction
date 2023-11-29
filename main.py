@@ -451,7 +451,9 @@ with open('top95.txt', 'r') as file:
 with open('top95.txt', 'r') as file:
     running_time_first_available = main(file, FirstAvailable())
 
-
+print('MRV', running_time_mrv)
+print()
+print('FA', running_time_first_available)
 plotter = PlotResults()
 plotter.plot_results(running_time_mrv, running_time_first_available,
                      "Running Time Backtracking (MRV)",
