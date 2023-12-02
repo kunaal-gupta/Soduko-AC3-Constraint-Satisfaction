@@ -2,9 +2,9 @@
 
 # Overview
 In this assignment you will implement a Constraint Satisfaction solver for Sudoku. If you aren’t familiar
-with Sudoku, please review Section 5.1.2 of the lecture notes. In the notes, we describe a 4  4 puzzle with
-units of size 22 and variables with domain f1; 2; 3; 4g. In this assignment we will solve the traditional 99
-Sudoku puzzles with units of size 3  3 and variable domains of f1; 2; 3; 4; 5; 6; 7; 8; 9g.
+with Sudoku, please review Section 5.1.2 of the lecture notes. In the notes, we describe a 4 x 4 puzzle with
+units of size 2x2 and variables with domain f1; 2; 3; 4g. In this assignment we will solve the traditional 9x9
+Sudoku puzzles with units of size 3 x 3 and variable domains of f1; 2; 3; 4; 5; 6; 7; 8; 9g.
 
 # How to Run Starter Code
 You will need Python 3, Numpy, and Matplotlib installed to run the starter code. The starter can be run
