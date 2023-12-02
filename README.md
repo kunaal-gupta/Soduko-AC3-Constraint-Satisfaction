@@ -238,7 +238,9 @@ plotter = PlotResults()
 plotter.plot_results(running_time_mrv, running_time_first_available,
 "Running Time Backtracking (MRV)",
 "Running Time Backtracking (FA)", "running_time")
+
 ```
+![image](https://github.com/kunaal-gupta/Soduko-AC3-Constraint-Satisfaction/assets/87749508/8fca0850-7312-4e90-a6db-7a1477c50522)
 
 In the code above, running_time_mrv and running_time_first_available are lists containing the running
 time in seconds for each of the 95 Sudoku puzzles. The first entry of each list is the running time of the two
